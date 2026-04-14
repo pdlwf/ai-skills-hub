@@ -15,15 +15,23 @@ import sys
 import yaml
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 REPO_ROOT   = Path(__file__).parent.parent.resolve()
-SKILLS_DIR  = REPO_ROOT / "skills"
+SKILLS_DIR  = REPO_ROOT / "skills" / "personal"
 ADAPTERS_DIR = REPO_ROOT / "adapters"
+TOOL_ALIASES = {
+    "claude": "claude-code",
+}
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+def canonical_tool_name(tool_name: str) -> str:
+    return TOOL_ALIASES.get(tool_name, tool_name)
+
 def load_adapter(tool_name: str) -> dict:
-    path = ADAPTERS_DIR / f"{tool_name}.yaml"
+    canonical_name = canonical_tool_name(tool_name)
+    path = ADAPTERS_DIR / f"{canonical_name}.yaml"
     if not path.exists():
         print(f"  ✗ No adapter found for '{tool_name}' (looked in {path})")
         sys.exit(1)
@@ -79,7 +87,7 @@ def install_skill(skill_name: str, adapter: dict, dry_run: bool = False) -> bool
         print(f"  ⚠ {skill_name}: no matching files (types: {allowed_types})")
         return False
 
-def install(tools: list[str], skills: list[str] | None, dry_run: bool):
+def install(tools: list[str], skills: Optional[list[str]], dry_run: bool):
     all_skills = list_skills()
     target_skills = skills if skills else all_skills
 

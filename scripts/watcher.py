@@ -30,7 +30,7 @@ REPO_ROOT = Path(__file__).parent.parent.resolve()
 
 # Directories to watch (source + all installed tool dirs)
 WATCH_DIRS = [
-    REPO_ROOT / "skills",                                               # source
+    REPO_ROOT / "skills" / "personal",                                               # source
     Path.home() / ".claude" / "skills",                                 # claude code
     Path.home() / ".codex" / "skills",                                  # codex
     Path.home() / "Library/Application Support/ChatGPT/skills",         # chatgpt desktop
@@ -130,7 +130,7 @@ def _maybe_sync_back_to_source(changed_path: Path):
     copy it back into skills/ so the repo stays as source of truth.
     """
     import shutil
-    skills_dir = REPO_ROOT / "skills"
+    skills_dir = REPO_ROOT / "skills" / "personal"
 
     for watch_dir in WATCH_DIRS:
         if watch_dir == skills_dir:

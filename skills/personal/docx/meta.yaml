@@ -1,0 +1,12 @@
+name: docx
+version: "1.0.0"
+description: "Create, edit, and analyze Word documents (.docx). Supports tracked changes, redlining, raw XML editing, text extraction, and document-to-image conversion."
+tags:
+  - document
+  - word
+  - office
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

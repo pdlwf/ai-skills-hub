@@ -1,0 +1,12 @@
+name: playwright
+version: "1.0.0"
+description: "Automate a real browser from the terminal using playwright-cli — navigation, form filling, snapshots, screenshots, data extraction, and UI-flow debugging. CLI-first, no test spec needed."
+tags:
+  - browser-automation
+  - testing
+  - playwright
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

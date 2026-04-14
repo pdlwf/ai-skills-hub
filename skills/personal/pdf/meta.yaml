@@ -1,0 +1,12 @@
+name: pdf
+version: "1.0.0"
+description: "Comprehensive PDF manipulation — extract text and tables, create new PDFs, merge/split documents, OCR scanned pages, fill forms, add watermarks, and encrypt files."
+tags:
+  - pdf
+  - document
+  - extraction
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

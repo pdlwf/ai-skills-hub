@@ -1,0 +1,13 @@
+name: excel-date-understanding
+version: "1.0.0"
+description: "Interpret messy schedule dates in spreadsheets — normalize values, recover task hierarchy, extract note-embedded dates, detect anomalies, and produce structured project-date facts. Depends on xlsx skill for workbook I/O."
+tags:
+  - excel
+  - dates
+  - project-management
+  - scheduling
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

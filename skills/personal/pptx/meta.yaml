@@ -1,0 +1,12 @@
+name: pptx
+version: "1.0.0"
+description: "Create, edit, and analyze PowerPoint presentations (.pptx). Supports scratch creation via html2pptx, template-based workflows, OOXML editing, thumbnail generation, and slide-to-image conversion."
+tags:
+  - presentation
+  - powerpoint
+  - office
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

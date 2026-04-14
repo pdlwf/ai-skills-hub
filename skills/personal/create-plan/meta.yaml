@@ -1,0 +1,12 @@
+name: create-plan
+version: "1.0.0"
+description: "Turn a user prompt into a single, actionable coding task plan. Use when the user explicitly asks for a plan related to a coding task."
+tags:
+  - planning
+  - coding
+  - productivity
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

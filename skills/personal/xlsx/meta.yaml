@@ -1,0 +1,13 @@
+name: xlsx
+version: "1.0.0"
+description: "Create, edit, and analyze spreadsheets (.xlsx, .xlsm, .csv). Supports formulas with zero-error guarantees, financial model color-coding, openpyxl/pandas workflows, and formula recalculation via LibreOffice."
+tags:
+  - excel
+  - spreadsheet
+  - data
+  - finance
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"
