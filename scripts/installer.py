@@ -2,36 +2,29 @@
 """
 ai-skills-hub installer
 Usage:
-  python3 scripts/installer.py --tool claude
-  python3 scripts/installer.py --tool claude,chatgpt,codex
-  python3 scripts/installer.py --tool claude --skills docx,pdf
+  python3 scripts/installer.py --tool claude-code
+  python3 scripts/installer.py --tool claude-code,claude-cowork,codex
+  python3 scripts/installer.py --tool claude-cowork --skills docx,pdf
   python3 scripts/installer.py --list
+  python3 scripts/installer.py --status
 """
 
 import argparse
 import os
 import shutil
 import sys
+import json
 import yaml
 from pathlib import Path
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
 
-# ── Paths ────────────────────────────────────────────────────────────────────
-REPO_ROOT   = Path(__file__).parent.parent.resolve()
-SKILLS_DIR  = REPO_ROOT / "skills" / "personal" / "personal"
+REPO_ROOT    = Path(__file__).parent.parent.resolve()
+SKILLS_DIR   = REPO_ROOT / "skills" / "personal"
 ADAPTERS_DIR = REPO_ROOT / "adapters"
-TOOL_ALIASES = {
-    "claude": "claude-code",
-}
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
-def canonical_tool_name(tool_name: str) -> str:
-    return TOOL_ALIASES.get(tool_name, tool_name)
-
 def load_adapter(tool_name: str) -> dict:
-    canonical_name = canonical_tool_name(tool_name)
-    path = ADAPTERS_DIR / f"{canonical_name}.yaml"
+    path = ADAPTERS_DIR / f"{tool_name}.yaml"
     if not path.exists():
         print(f"  ✗ No adapter found for '{tool_name}' (looked in {path})")
         sys.exit(1)
@@ -48,23 +41,25 @@ def expand_path(p: str) -> Path:
     return Path(os.path.expandvars(os.path.expanduser(p)))
 
 def notify(title: str, message: str):
-    """macOS desktop notification."""
     os.system(f'osascript -e \'display notification "{message}" with title "{title}"\'')
 
-# ── Core install logic ────────────────────────────────────────────────────────
+def load_skill_meta(skill_name: str) -> dict:
+    meta_path = SKILLS_DIR / skill_name / "meta.yaml"
+    if meta_path.exists():
+        with open(meta_path) as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
+# ── Core install ─────────────────────────────────────────────────────────────
 def install_skill(skill_name: str, adapter: dict, dry_run: bool = False) -> bool:
     src = SKILLS_DIR / skill_name
     if not src.exists():
         print(f"  ✗ Skill '{skill_name}' not found in {SKILLS_DIR}")
         return False
 
-    dest_base = expand_path(adapter["install_path"])
+    dest_base     = expand_path(adapter["install_path"])
     allowed_types = set(adapter.get("file_types", [".md", ".yaml", ".json"]))
-
-    if adapter.get("skill_subfolder", True):
-        dest = dest_base / skill_name
-    else:
-        dest = dest_base
+    dest          = dest_base / skill_name if adapter.get("skill_subfolder", True) else dest_base
 
     if not dry_run:
         dest.mkdir(parents=True, exist_ok=True)
@@ -72,7 +67,7 @@ def install_skill(skill_name: str, adapter: dict, dry_run: bool = False) -> bool
     copied = []
     for src_file in src.rglob("*"):
         if src_file.is_file() and src_file.suffix in allowed_types:
-            rel = src_file.relative_to(src)
+            rel      = src_file.relative_to(src)
             dst_file = dest / rel
             if not dry_run:
                 dst_file.parent.mkdir(parents=True, exist_ok=True)
@@ -87,8 +82,80 @@ def install_skill(skill_name: str, adapter: dict, dry_run: bool = False) -> bool
         print(f"  ⚠ {skill_name}: no matching files (types: {allowed_types})")
         return False
 
-def install(tools: list[str], skills: Optional[list[str]], dry_run: bool):
-    all_skills = list_skills()
+# ── Cowork manifest update ───────────────────────────────────────────────────
+def update_cowork_manifest(adapter: dict, skills: list[str], dry_run: bool = False):
+    manifest_path = expand_path(adapter.get("manifest_path", ""))
+    if not manifest_path or not manifest_path.exists():
+        print("  ⚠ manifest_path not found, skipping manifest update")
+        return
+
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+
+    existing_ids = {s["skillId"] for s in manifest["skills"]}
+    added = []
+
+    for skill_name in skills:
+        if skill_name in existing_ids:
+            print(f"  ↺ manifest: '{skill_name}' already registered")
+            continue
+        meta = load_skill_meta(skill_name)
+        entry = {
+            "skillId":     skill_name,
+            "name":        skill_name,
+            "description": meta.get("description", f"{skill_name} skill"),
+            "creatorType": "user",
+            "updatedAt":   datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
+            "enabled":     True
+        }
+        if not dry_run:
+            manifest["skills"].insert(0, entry)
+        added.append(skill_name)
+
+    if added and not dry_run:
+        manifest["lastUpdated"] = int(datetime.now().timestamp() * 1000)
+        with open(manifest_path, "w") as f:
+            json.dump(manifest, f, indent=2)
+        print(f"  ✓ manifest updated: added {added}")
+    elif added:
+        print(f"  [dry-run] would add to manifest: {added}")
+    
+
+# ── Status check ─────────────────────────────────────────────────────────────
+def show_status():
+    import hashlib
+
+    def file_hash(p: Path) -> str:
+        if not p.exists(): return "missing"
+        return hashlib.md5(p.read_bytes()).hexdigest()[:8]
+
+    skills = list_skills()
+    tools  = list_tools()
+    print(f"\n{'Skill':<35}", end="")
+    for t in tools:
+        print(f"{t:<20}", end="")
+    print()
+    print("─" * (35 + 20 * len(tools)))
+
+    for skill in sorted(skills):
+        src_md5 = file_hash(SKILLS_DIR / skill / "SKILL.md")
+        print(f"{skill:<35}", end="")
+        for tool in tools:
+            adapter  = load_adapter(tool)
+            dest     = expand_path(adapter["install_path"]) / skill / "SKILL.md"
+            dst_md5  = file_hash(dest)
+            if dst_md5 == "missing":
+                print(f"{'✗ not installed':<20}", end="")
+            elif dst_md5 == src_md5:
+                print(f"{'✓ in sync':<20}", end="")
+            else:
+                print(f"{'⚠ out of date':<20}", end="")
+        print()
+    print()
+
+# ── Install orchestrator ──────────────────────────────────────────────────────
+def install(tools: list[str], skills: list[str] | None, dry_run: bool):
+    all_skills    = list_skills()
     target_skills = skills if skills else all_skills
 
     print(f"\n{'[DRY RUN] ' if dry_run else ''}Installing {len(target_skills)} skill(s) to {len(tools)} tool(s)\n")
@@ -101,29 +168,27 @@ def install(tools: list[str], skills: Optional[list[str]], dry_run: bool):
         for skill in target_skills:
             if install_skill(skill, adapter, dry_run=dry_run):
                 ok.append(skill)
+        # Extra step for cowork: update manifest
+        if adapter.get("manifest_path"):
+            update_cowork_manifest(adapter, ok, dry_run=dry_run)
         results[tool] = ok
         print()
 
-    # Summary
     print("─" * 50)
     print("Summary:")
     for tool, installed in results.items():
         print(f"  {tool}: {len(installed)}/{len(target_skills)} skills installed")
 
     if not dry_run:
-        notify(
-            "ai-skills-hub",
-            f"Installed {sum(len(v) for v in results.values())} skill(s) across {len(tools)} tool(s)"
-        )
+        notify("ai-skills-hub", f"Installed {sum(len(v) for v in results.values())} skill(s) across {len(tools)} tool(s)")
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(
-        description="Install AI skills to local tool directories"
-    )
-    parser.add_argument("--tool",   help="Comma-separated tool names, e.g. claude,chatgpt,codex")
-    parser.add_argument("--skills", help="Comma-separated skill names (default: all)")
-    parser.add_argument("--list",   action="store_true", help="List available tools and skills")
+    parser = argparse.ArgumentParser(description="Install AI skills to local tool directories")
+    parser.add_argument("--tool",    help="Comma-separated tool names, e.g. claude-code,claude-cowork,codex")
+    parser.add_argument("--skills",  help="Comma-separated skill names (default: all)")
+    parser.add_argument("--list",    action="store_true", help="List available tools and skills")
+    parser.add_argument("--status",  action="store_true", help="Show sync status across all tools")
     parser.add_argument("--dry-run", action="store_true", help="Preview without copying files")
     args = parser.parse_args()
 
@@ -134,13 +199,12 @@ def main():
             print(f"  {t:<30} → {a['install_path']}")
         print("\nAvailable skills:")
         for s in sorted(list_skills()):
-            meta_path = SKILLS_DIR / s / "meta.yaml"
-            desc = ""
-            if meta_path.exists():
-                with open(meta_path) as f:
-                    m = yaml.safe_load(f)
-                    desc = m.get("description", "")
-            print(f"  {s:<35} {desc}")
+            meta = load_skill_meta(s)
+            print(f"  {s:<35} {meta.get('description','')[:60]}")
+        return
+
+    if args.status:
+        show_status()
         return
 
     if not args.tool:
@@ -149,7 +213,6 @@ def main():
 
     tools  = [t.strip() for t in args.tool.split(",")]
     skills = [s.strip() for s in args.skills.split(",")] if args.skills else None
-
     install(tools, skills, dry_run=args.dry_run)
 
 if __name__ == "__main__":

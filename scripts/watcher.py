@@ -26,13 +26,16 @@ except ImportError:
     from watchdog.events import FileSystemEventHandler
 
 # ── Config ───────────────────────────────────────────────────────────────────
-REPO_ROOT = Path(__file__).parent.parent.resolve()
+REPO_ROOT = Path("/Users/bobbypeng/Library/CloudStorage/OneDrive-Personal/AI_study/skills_set/ai-skills-hub")
 
 # Directories to watch (source + all installed tool dirs)
+COWORK_SKILLS = Path.home() / "Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/6646b417-5fba-46c1-9b00-ebaca8cf6a31/a2604f6d-a95d-4ed4-b93b-56f8dc42bbd2/skills"
+
 WATCH_DIRS = [
     REPO_ROOT / "skills" / "personal",                                  # source (repo)
     Path.home() / ".claude" / "skills" / "personal",                    # claude code
     Path.home() / ".codex" / "skills" / "personal",                     # codex
+    COWORK_SKILLS,                                                       # claude app cowork
 ]
 
 # File types that trigger a sync
@@ -41,7 +44,7 @@ TRIGGER_EXTENSIONS = {".md", ".yaml", ".json"}
 # Debounce: don't push more than once every N seconds
 DEBOUNCE_SECONDS = 5
 
-LOG_PATH = REPO_ROOT / "logs" / "watcher.log"
+LOG_PATH = Path.home() / ".ai-skills-hub" / "logs" / "watcher.log"
 LOG_PATH.parent.mkdir(exist_ok=True)
 
 logging.basicConfig(
@@ -66,6 +69,43 @@ def git_has_changes() -> bool:
     )
     return bool(result.stdout.strip())
 
+def build_skills_context():
+    """
+    Generate SKILLS_CONTEXT.md — a single file summarising all personal skills.
+    Used for pasting into Claude chat (conversation mode) as a quick context loader.
+    """
+    skills_dir = REPO_ROOT / "skills" / "personal"
+    lines = [
+        "# AI Skills Context",
+        f"_Auto-generated {datetime.now().strftime('%Y-%m-%d %H:%M')} — paste into Claude chat to load all skills_\n",
+    ]
+    for skill_path in sorted(skills_dir.iterdir()):
+        if not skill_path.is_dir():
+            continue
+        skill_md = skill_path / "SKILL.md"
+        meta_yaml = skill_path / "meta.yaml"
+        if not skill_md.exists():
+            continue
+        # Read description from meta.yaml
+        desc = ""
+        if meta_yaml.exists():
+            for line in meta_yaml.read_text().splitlines():
+                if line.startswith("description:"):
+                    desc = line.replace("description:", "").strip().strip('"')
+                    break
+        lines.append(f"## {skill_path.name}")
+        if desc:
+            lines.append(f"_{desc}_\n")
+        # Include first 30 lines of SKILL.md as preview
+        skill_lines = skill_md.read_text().splitlines()[:30]
+        lines.append("```")
+        lines.extend(skill_lines)
+        lines.append("```\n")
+
+    out = REPO_ROOT / "SKILLS_CONTEXT.md"
+    out.write_text("\n".join(lines))
+    log.info(f"✓ SKILLS_CONTEXT.md updated ({len(list(skills_dir.iterdir()))} skills)")
+
 def git_sync(changed_file: str):
     """Stage all, commit with timestamp, push."""
     try:
@@ -78,6 +118,9 @@ def git_sync(changed_file: str):
             cwd=REPO_ROOT, check=True
         )
         subprocess.run(["git", "push"], cwd=REPO_ROOT, check=True)
+
+        # Rebuild context file for conversation mode
+        build_skills_context()
 
         log.info(f"✓ Pushed: {changed_file}")
         notify("ai-skills-hub ✓", f"Synced: {short}")

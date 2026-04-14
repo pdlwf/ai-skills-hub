@@ -1,0 +1,12 @@
+name: cowork
+display_name: Claude App (Cowork / Agent Mode)
+install_path: ~/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/6646b417-5fba-46c1-9b00-ebaca8cf6a31/a2604f6d-a95d-4ed4-b93b-56f8dc42bbd2/skills
+file_types:
+  - .md
+  - .yaml
+  - .json
+  - .py
+skill_subfolder: true
+notes: >
+  Claude App local agent mode (Cowork). Skills placed here are auto-detected
+  and registered in manifest.json. Restart Claude App after installing new skills.
