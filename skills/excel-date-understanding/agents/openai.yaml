@@ -1,0 +1,4 @@
+interface:
+  display_name: "Excel Date Understanding"
+  short_description: "Interpret messy Excel schedule dates and analyze them."
+  default_prompt: "Use $excel-date-understanding to extract structured project-date facts and derived date analysis from this workbook."

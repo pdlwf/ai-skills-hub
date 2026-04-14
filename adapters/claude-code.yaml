@@ -1,0 +1,11 @@
+name: claude-code
+display_name: Claude Code
+install_path: ~/.claude/skills
+file_types:
+  - .md
+  - .yaml
+  - .json
+skill_subfolder: true   # preserve skill subdirectory structure
+notes: >
+  Claude Code reads skills from ~/.claude/skills/<skill-name>/SKILL.md
+  Restart Claude Code after installing new skills.

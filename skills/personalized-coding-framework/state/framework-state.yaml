@@ -1,0 +1,623 @@
+state_version: 1
+current_version: v9
+last_updated_at: 2026-04-02T09:40:00Z
+summary: "Project workflow is idea-first, uses a three-phase idea -> PD -> epics stream, requires a dedicated folder for each idea, keeps schedule-business judgment boundaries explicit, allows workbook-authored status logic to override generic inference, prioritizes structured date extraction over report packaging for the Excel date skill, treats remark/update/feedback columns as evidence-bearing note sources, requires approval plus logging for skill self-maintenance, and now includes project-specific defaults for the email triage system: web dashboard output, rule-first project classification, a broad attachment surface, a two-week initial history window, a bias toward low false positives, Graph-first delegated-user mailbox ingestion, retention cleanup with preserved completion traces, structured open-item tracking fields, contextual attachment reading, and selective reason capture on high-conflict user corrections."
+
+signals:
+  - id: sig_20260309_idea_stream
+    source: explicit
+    language: en
+    text: "In this repo, we focus on exchanging ideas, reframe ideas into a PD, and later elaborate them into epic stories."
+    context: "brain_storms repository setup"
+    timestamp: 2026-03-09T06:08:10Z
+    strength: strong
+    confidence_seed: 0.95
+    tags:
+      - workflow
+      - ideation
+      - documentation
+  - id: sig_20260309_three_phase_flow
+    source: explicit
+    language: en
+    text: "The workflow should follow phase 1 kickoff discussion, phase 2 PD drafting, and phase 3 epic story elaboration."
+    context: "brain_storms repository setup"
+    timestamp: 2026-03-09T06:08:10Z
+    strength: strong
+    confidence_seed: 0.95
+    tags:
+      - workflow
+      - phases
+      - pd
+      - epics
+  - id: sig_20260309_dedicated_folder
+    source: explicit
+    language: en
+    text: "Each new idea should have a dedicated folder."
+    context: "brain_storms repository setup"
+    timestamp: 2026-03-09T06:08:10Z
+    strength: strong
+    confidence_seed: 0.98
+    tags:
+      - structure
+      - organization
+  - id: sig_20260320_schedule_judgment_boundary
+    source: explicit
+    language: zh
+    text: "条件格式和日期规则可以帮助理解 delay 和近期关注事项，但 delay but manageable 这种判断要提醒用户来判断，不能直接替用户下结论。"
+    context: "excel-date-understanding skill design"
+    timestamp: 2026-03-20T00:00:00Z
+    strength: strong
+    confidence_seed: 0.96
+    tags:
+      - schedule
+      - dates
+      - business-judgment
+      - reporting-boundary
+  - id: sig_20260320_workbook_authored_status_override
+    source: explicit
+    language: zh
+    text: "如果excel的非日期单元格明确写有 delay but manageable 一类字样，就可以认定是 manageable。若有条件格式，应采用并提取其判断逻辑；若识别到新的条件格式，应补充完善 skill 规则。"
+    context: "excel-date-understanding skill refinement"
+    timestamp: 2026-03-20T00:30:00Z
+    strength: strong
+    confidence_seed: 0.97
+    tags:
+      - schedule
+      - workbook-logic
+      - conditional-formatting
+      - rule-evolution
+  - id: sig_20260320_date_data_over_reports
+    source: explicit
+    language: zh
+    text: "这个 skill 专注怎么解析日期，以及分析这些日期，尽量是提取出来足够多的关于项目日期方面的数据。"
+    context: "excel-date-understanding product focus"
+    timestamp: 2026-03-20T01:00:00Z
+    strength: strong
+    confidence_seed: 0.98
+    tags:
+      - schedule
+      - dates
+      - data-extraction
+      - output-focus
+  - id: sig_20260320_note_columns_as_evidence
+    source: explicit
+    language: zh
+    text: "一些 column 表头包含 remark、update、feedback 的，也要提取出来，这些备注信息能帮助在有疑问或怀疑的时候进行分析或参考。"
+    context: "excel-date-understanding evidence design"
+    timestamp: 2026-03-20T01:20:00Z
+    strength: strong
+    confidence_seed: 0.98
+    tags:
+      - schedule
+      - notes
+      - evidence
+      - dates
+  - id: sig_20260320_self_maintenance_with_approval
+    source: explicit
+    language: zh
+    text: "这个 skill 要能持续在后面和我对话过程中吸收我教给它的新技巧，但每次优化前要询问我的意见，并且每次更新维护后要做好修改记录。"
+    context: "excel-date-understanding maintenance governance"
+    timestamp: 2026-03-20T01:40:00Z
+    strength: strong
+    confidence_seed: 0.99
+    tags:
+      - skill-maintenance
+      - approval
+      - update-log
+      - learning
+  - id: sig_20260402_local_export_email_system
+    source: explicit
+    language: zh
+    text: "Outlook 自动接 Microsoft API 目前比较麻烦，先用一个脚本把本地邮件导出到项目目录。"
+    context: "email_sort_sys solution definition"
+    timestamp: 2026-04-02T02:42:20Z
+    strength: strong
+    confidence_seed: 0.97
+    tags:
+      - email
+      - ingestion
+      - local-export
+      - mvp
+  - id: sig_20260402_graph_first_ingestion
+    source: explicit
+    language: zh
+    text: "那我们就用Microsoft Graph API这个方案吧。"
+    context: "email_sort_sys ingestion strategy update"
+    timestamp: 2026-04-02T08:30:00Z
+    strength: strong
+    confidence_seed: 0.99
+    tags:
+      - email
+      - ingestion
+      - graph
+      - delegated-auth
+  - id: sig_20260402_web_dashboard_output
+    source: explicit
+    language: zh
+    text: "输出先做成网页看板。"
+    context: "email_sort_sys output target"
+    timestamp: 2026-04-02T02:42:20Z
+    strength: strong
+    confidence_seed: 0.98
+    tags:
+      - email
+      - dashboard
+      - output
+      - ui
+  - id: sig_20260402_rule_first_project_mapping
+    source: explicit
+    language: zh
+    text: "邮件里 tinno.com 归 PD1，chino-e.com 归 SD1；内部邮件通过 PD1、SD1 识别；两个项目共同事项单列为 common share。"
+    context: "email_sort_sys project classification"
+    timestamp: 2026-04-02T02:42:20Z
+    strength: strong
+    confidence_seed: 0.99
+    tags:
+      - email
+      - project-classification
+      - rules
+      - pd1
+      - sd1
+  - id: sig_20260402_all_attachments_in_scope
+    source: explicit
+    language: zh
+    text: "附件第一版希望都覆盖，包括 PDF、Excel、图片。"
+    context: "email_sort_sys attachment scope"
+    timestamp: 2026-04-02T02:42:20Z
+    strength: strong
+    confidence_seed: 0.95
+    tags:
+      - email
+      - attachments
+      - pdf
+      - excel
+      - image
+  - id: sig_20260402_two_week_history_window
+    source: explicit
+    language: zh
+    text: "历史邮件第一版只先回看两周。"
+    context: "email_sort_sys initial history window"
+    timestamp: 2026-04-02T02:42:20Z
+    strength: strong
+    confidence_seed: 0.97
+    tags:
+      - email
+      - history
+      - mvp
+      - time-window
+  - id: sig_20260402_low_false_positive_bias
+    source: explicit
+    language: zh
+    text: "相比绝不漏项，更在意尽量少误报。"
+    context: "email_sort_sys quality preference"
+    timestamp: 2026-04-02T02:42:20Z
+    strength: strong
+    confidence_seed: 0.99
+    tags:
+      - email
+      - quality
+      - precision
+      - prioritization
+  - id: sig_20260402_retention_cleanup_with_completion_trace
+    source: explicit
+    language: zh
+    text: "定时导入 eml 邮件后要考虑存储膨胀，需要清理过期或已完成事项对应的原始邮件，但仍要保留事项完成记录以及对应邮件日期和主题。"
+    context: "email_sort_sys storage lifecycle"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.98
+    tags:
+      - email
+      - storage
+      - retention
+      - cleanup
+      - audit
+  - id: sig_20260402_broader_attachment_scope
+    source: explicit
+    language: zh
+    text: "附件范围除了 PDF、Excel、图片，还要考虑 PPT、常见 Office 文件和 ZIP、RAR 之类常见附件。"
+    context: "email_sort_sys broader attachments"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.96
+    tags:
+      - email
+      - attachments
+      - ppt
+      - word
+      - archive
+  - id: sig_20260402_common_share_project_detail
+    source: explicit
+    language: zh
+    text: "common share 事项最好还能指出是哪些项目共享。"
+    context: "email_sort_sys shared project detail"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.97
+    tags:
+      - email
+      - project-classification
+      - common-share
+      - project-detail
+  - id: sig_20260402_script_export_preferred
+    source: explicit
+    language: zh
+    text: "相比用户手动导出，希望通过脚本从 Outlook 导出会更好。"
+    context: "email_sort_sys export workflow"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.99
+    tags:
+      - email
+      - export
+      - automation
+      - outlook
+  - id: sig_20260402_structured_open_item_tracking
+    source: explicit
+    language: zh
+    text: "未关闭事项希望支持备注、启动时间、截止时间、延迟天数和影响记录。"
+    context: "email_sort_sys open item tracking"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.99
+    tags:
+      - email
+      - tasks
+      - due-date
+      - remark
+      - delay
+      - impact
+  - id: sig_20260402_contextual_attachment_reading
+    source: explicit
+    language: zh
+    text: "附件是否要立刻读取，应结合邮件上下文判断；有些附件可以先保留，后续再参考。"
+    context: "email_sort_sys contextual attachment strategy"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.98
+    tags:
+      - email
+      - attachments
+      - context
+      - deferred-reading
+  - id: sig_20260402_conflict_reason_capture
+    source: explicit
+    language: zh
+    text: "当用户更新内容与 Codex 理解冲突时，可以请求用户解释原因。"
+    context: "email_sort_sys feedback conflict handling"
+    timestamp: 2026-04-02T06:11:21Z
+    strength: strong
+    confidence_seed: 0.96
+    tags:
+      - email
+      - feedback
+      - conflict
+      - explanation
+
+principles:
+  - id: prj_idea_first_repo
+    statement: "Treat this repository as an idea-development stream focused on reframing ideas into clearer artifacts rather than as a generic code project."
+    kind: default_behavior
+    scope: project
+    priority: 5
+    confidence: 0.95
+    evidence_ids:
+      - sig_20260309_idea_stream
+    status: active
+    notes: "Favor idea capture, reframing, and documentation structure."
+  - id: prj_three_phase_idea_pd_epics
+    statement: "Use a three-phase progression of kickoff discussion, PD drafting, and epic-story elaboration for idea development in this repository."
+    kind: default_behavior
+    scope: project
+    priority: 5
+    confidence: 0.95
+    evidence_ids:
+      - sig_20260309_three_phase_flow
+    status: active
+    notes: "Default artifact flow for each idea."
+  - id: prj_dedicated_folder_per_idea
+    statement: "Create a dedicated folder for every new idea."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.98
+    evidence_ids:
+      - sig_20260309_dedicated_folder
+    status: active
+    notes: "Folder-per-idea is mandatory for repository organization."
+  - id: dom_schedule_judgment_boundary
+    statement: "For schedule and date-analysis tasks, infer likely delay or attention-needed status from workbook evidence, but leave judgments such as manageable or blocking to the user unless the workbook explicitly defines them."
+    kind: hard_constraint
+    scope: domain
+    priority: 5
+    confidence: 0.96
+    evidence_ids:
+      - sig_20260320_schedule_judgment_boundary
+    status: active
+    notes: "Applies to the Excel date-understanding skill and similar schedule-analysis work."
+  - id: dom_workbook_authored_status_override
+    statement: "For workbook schedule analysis, explicit status text in non-date cells and inspectable conditional-format logic should be adopted as workbook-authored meaning; new conditional-format patterns should be promoted back into the reusable skill rules when validated."
+    kind: hard_constraint
+    scope: domain
+    priority: 5
+    confidence: 0.97
+    evidence_ids:
+      - sig_20260320_workbook_authored_status_override
+    status: active
+    notes: "This creates an exception to the generic business-judgment boundary when the workbook itself states the judgment."
+  - id: dom_date_data_over_reports
+    statement: "For the Excel date-understanding skill, prioritize structured project-date extraction and date analysis over polished report packaging."
+    kind: hard_constraint
+    scope: domain
+    priority: 5
+    confidence: 0.98
+    evidence_ids:
+      - sig_20260320_date_data_over_reports
+    status: active
+    notes: "Reports are secondary renderings; structured date facts are the primary artifact."
+  - id: dom_note_columns_as_evidence
+    statement: "For the Excel date-understanding skill, columns whose headers indicate note-like content such as remark, update, or feedback should be extracted as evidence-bearing text fields and used in date interpretation and anomaly analysis."
+    kind: hard_constraint
+    scope: domain
+    priority: 5
+    confidence: 0.98
+    evidence_ids:
+      - sig_20260320_note_columns_as_evidence
+    status: active
+    notes: "These columns are part of the date-understanding surface even when they are not date-formatted."
+  - id: dom_self_maintenance_with_approval
+    statement: "For the Excel date-understanding skill, reusable improvements discovered during usage should be proposed first, applied only after user approval, and recorded in an explicit maintenance log after the change."
+    kind: hard_constraint
+    scope: domain
+    priority: 5
+    confidence: 0.99
+    evidence_ids:
+      - sig_20260320_self_maintenance_with_approval
+    status: active
+    notes: "The skill should improve cumulatively, but never through silent self-modification."
+  - id: prj_local_export_before_api_integration
+    statement: "For the email triage system MVP, use a local Outlook export script and project-directory ingestion instead of direct Microsoft API integration."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.97
+    evidence_ids:
+      - sig_20260402_local_export_email_system
+    status: active
+    notes: "Optimize for delivery speed and operational simplicity in the first phase."
+  - id: prj_web_dashboard_primary_output
+    statement: "For the email triage system, present the main output as a web dashboard rather than email, Notion, or spreadsheet reports."
+    kind: default_behavior
+    scope: project
+    priority: 5
+    confidence: 0.98
+    evidence_ids:
+      - sig_20260402_web_dashboard_output
+    status: active
+    notes: "The dashboard is the primary daily review surface."
+  - id: prj_rule_first_project_mapping
+    statement: "For project classification in the email triage system, apply deterministic rules first: tinno.com -> PD1, chino-e.com -> SD1, internal emails via PD1/SD1 cues, and shared PD1+SD1 matters as common share."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.99
+    evidence_ids:
+      - sig_20260402_rule_first_project_mapping
+    status: active
+    notes: "Rule-first mapping is preferred over free-form model classification to control false positives."
+  - id: prj_all_attachment_types_in_scope
+    statement: "For the email triage system MVP, include PDF, Excel, and image attachments in the understanding surface."
+    kind: default_behavior
+    scope: project
+    priority: 4
+    confidence: 0.95
+    evidence_ids:
+      - sig_20260402_all_attachments_in_scope
+    status: active
+    notes: "Coverage is broad, but extraction confidence should still be surfaced."
+  - id: prj_two_week_initial_history_window
+    statement: "For the email triage system MVP, limit historical backfill to the most recent two weeks of mail."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.97
+    evidence_ids:
+      - sig_20260402_two_week_history_window
+    status: active
+    notes: "Keep the first phase small and fast to validate."
+  - id: prj_low_false_positive_bias
+    statement: "For the email triage system, optimize for low false positives over maximum recall when deciding which tasks and risks to surface prominently."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.99
+    evidence_ids:
+      - sig_20260402_low_false_positive_bias
+    status: active
+    notes: "Prefer a confidence-tiered output and conservative action-item extraction."
+  - id: prj_retention_cleanup_with_completion_trace
+    statement: "For the email triage system, control local storage growth by cleaning up expired or completed raw email content while retaining minimal completion traces including email date, subject, and item history."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.98
+    evidence_ids:
+      - sig_20260402_retention_cleanup_with_completion_trace
+    status: active
+    notes: "Cleanup must not erase the user's ability to trace what was completed."
+  - id: prj_broader_attachment_surface
+    statement: "For the email triage system MVP, cover a broad attachment surface including PowerPoint, common Office documents, and common archive formats in addition to PDF, Excel, and images."
+    kind: default_behavior
+    scope: project
+    priority: 4
+    confidence: 0.96
+    evidence_ids:
+      - sig_20260402_broader_attachment_scope
+    status: active
+    notes: "Archives should still be handled conservatively."
+  - id: prj_common_share_project_detail
+    statement: "When the email triage system classifies an item as common share, it should preserve which concrete projects are involved whenever that can be inferred."
+    kind: default_behavior
+    scope: project
+    priority: 4
+    confidence: 0.97
+    evidence_ids:
+      - sig_20260402_common_share_project_detail
+    status: active
+    notes: "Common-share items should not lose project detail if it is available."
+  - id: prj_script_export_preferred
+    statement: "For the email triage system, prefer a script-driven Outlook export workflow over repeated manual user export steps."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.99
+    evidence_ids:
+      - sig_20260402_script_export_preferred
+    status: active
+    notes: "Operational friction must stay low to sustain adoption."
+  - id: prj_structured_open_item_tracking
+    statement: "For unresolved items in the email triage system, support structured tracking fields such as remark, kickoff date, due date, delay days, and impact."
+    kind: default_behavior
+    scope: project
+    priority: 5
+    confidence: 0.99
+    evidence_ids:
+      - sig_20260402_structured_open_item_tracking
+    status: active
+    notes: "Open work should be actively managed, not only inferred."
+  - id: prj_contextual_attachment_reading
+    statement: "For the email triage system, decide whether to read attachments immediately or defer them based on email context and current evidence needs."
+    kind: hard_constraint
+    scope: project
+    priority: 5
+    confidence: 0.98
+    evidence_ids:
+      - sig_20260402_contextual_attachment_reading
+    status: active
+    notes: "Do not force every attachment through full semantic analysis on first pass."
+  - id: prj_conflict_reason_capture
+    statement: "When a user correction materially conflicts with the system's prior understanding in the email triage system, the system may request a short reason and preserve it as part of feedback handling."
+    kind: default_behavior
+    scope: project
+    priority: 4
+    confidence: 0.96
+    evidence_ids:
+      - sig_20260402_conflict_reason_capture
+    status: active
+    notes: "Reason capture should remain selective to avoid interaction fatigue."
+
+conflicts: []
+versions:
+  - version: v0
+    created_at: null
+    change_summary: "Initial empty framework state."
+    principle_ids: []
+    open_conflicts: []
+  - version: v1
+    created_at: 2026-03-09T06:08:10Z
+    change_summary: "Added project workflow principles for idea-first collaboration, three-phase idea -> PD -> epics flow, and dedicated folder per idea."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+    open_conflicts: []
+  - version: v2
+    created_at: 2026-03-20T00:00:00Z
+    change_summary: "Added a domain boundary for schedule/date analysis: infer likely delay from workbook evidence, but reserve business-severity judgments such as manageable or blocking for the user unless explicitly encoded."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+    open_conflicts: []
+  - version: v3
+    created_at: 2026-03-20T00:30:00Z
+    change_summary: "Added a workbook-authored override: explicit status text and inspectable conditional-format logic may be adopted as source meaning, and new conditional-format patterns should feed back into the reusable rule library."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+      - dom_workbook_authored_status_override
+    open_conflicts: []
+  - version: v4
+    created_at: 2026-03-20T01:00:00Z
+    change_summary: "Prioritized structured project-date extraction and date analysis over report packaging for the Excel date-understanding skill."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+      - dom_workbook_authored_status_override
+      - dom_date_data_over_reports
+    open_conflicts: []
+  - version: v5
+    created_at: 2026-03-20T01:20:00Z
+    change_summary: "Added a domain rule to treat remark/update/feedback columns as evidence-bearing note fields for date extraction and anomaly analysis."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+      - dom_workbook_authored_status_override
+      - dom_date_data_over_reports
+      - dom_note_columns_as_evidence
+    open_conflicts: []
+  - version: v6
+    created_at: 2026-03-20T01:40:00Z
+    change_summary: "Added a maintenance governance rule: the skill may learn from future interactions, but must ask for approval before optimizing itself and must log each approved change."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+      - dom_workbook_authored_status_override
+      - dom_date_data_over_reports
+      - dom_note_columns_as_evidence
+      - dom_self_maintenance_with_approval
+    open_conflicts: []
+  - version: v7
+    created_at: 2026-04-02T02:42:20Z
+    change_summary: "Added project-specific defaults for the email triage system: local export before API integration, web dashboard output, rule-first project mapping, all attachment types in scope, a two-week initial history window, and a low-false-positive bias."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+      - dom_workbook_authored_status_override
+      - dom_date_data_over_reports
+      - dom_note_columns_as_evidence
+      - dom_self_maintenance_with_approval
+      - prj_local_export_before_api_integration
+      - prj_web_dashboard_primary_output
+      - prj_rule_first_project_mapping
+      - prj_all_attachment_types_in_scope
+      - prj_two_week_initial_history_window
+      - prj_low_false_positive_bias
+    open_conflicts: []
+  - version: v8
+    created_at: 2026-04-02T06:11:21Z
+    change_summary: "Extended the email triage system policy with script-driven export, retention cleanup that preserves completion traces, broader attachment coverage, project-detail preservation for common-share items, structured open-item tracking, contextual attachment reading, and selective reason capture on high-conflict user corrections."
+    principle_ids:
+      - prj_idea_first_repo
+      - prj_three_phase_idea_pd_epics
+      - prj_dedicated_folder_per_idea
+      - dom_schedule_judgment_boundary
+      - dom_workbook_authored_status_override
+      - dom_date_data_over_reports
+      - dom_note_columns_as_evidence
+      - dom_self_maintenance_with_approval
+      - prj_local_export_before_api_integration
+      - prj_web_dashboard_primary_output
+      - prj_rule_first_project_mapping
+      - prj_all_attachment_types_in_scope
+      - prj_two_week_initial_history_window
+      - prj_low_false_positive_bias
+      - prj_retention_cleanup_with_completion_trace
+      - prj_broader_attachment_surface
+      - prj_common_share_project_detail
+      - prj_script_export_preferred
+      - prj_structured_open_item_tracking
+      - prj_contextual_attachment_reading
+      - prj_conflict_reason_capture
+    open_conflicts: []
