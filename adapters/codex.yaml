@@ -1,6 +1,6 @@
 name: codex
 display_name: OpenAI Codex / Codex CLI
-install_path: ~/.codex/skills
+install_path: ~/.codex/skills/personal
 file_types:
   - .md
   - .yaml

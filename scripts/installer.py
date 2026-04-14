@@ -19,7 +19,7 @@ from typing import Optional
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 REPO_ROOT   = Path(__file__).parent.parent.resolve()
-SKILLS_DIR  = REPO_ROOT / "skills" / "personal"
+SKILLS_DIR  = REPO_ROOT / "skills" / "personal" / "personal"
 ADAPTERS_DIR = REPO_ROOT / "adapters"
 TOOL_ALIASES = {
     "claude": "claude-code",

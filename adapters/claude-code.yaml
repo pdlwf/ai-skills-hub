@@ -1,6 +1,6 @@
 name: claude-code
 display_name: Claude Code
-install_path: ~/.claude/skills
+install_path: ~/.claude/skills/personal
 file_types:
   - .md
   - .yaml
