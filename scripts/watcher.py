@@ -26,20 +26,27 @@ except ImportError:
     from watchdog.events import FileSystemEventHandler
 
 # ── Config ───────────────────────────────────────────────────────────────────
-REPO_ROOT = Path("/Users/bobbypeng/Library/CloudStorage/OneDrive-Personal/AI_study/skills_set/ai-skills-hub")
+REPO_ROOT = Path(os.environ.get(
+    "AI_SKILLS_HUB_REPO_ROOT",
+    "/Users/bobby/Library/CloudStorage/OneDrive-个人/AI_study/skills_set/ai-skills-hub",
+))
 
 # Directories to watch (source + all installed tool dirs)
 COWORK_SKILLS = Path.home() / "Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/6646b417-5fba-46c1-9b00-ebaca8cf6a31/a2604f6d-a95d-4ed4-b93b-56f8dc42bbd2/skills"
 
 WATCH_DIRS = [
     REPO_ROOT / "skills" / "personal",                                  # source (repo)
-    Path.home() / ".claude" / "skills" / "personal",                    # claude code
-    Path.home() / ".codex" / "skills" / "personal",                     # codex
+    Path.home() / ".claude" / "skills",                                 # claude code
+    Path.home() / ".codex" / "skills",                                  # codex
     COWORK_SKILLS,                                                       # claude app cowork
 ]
 
 # File types that trigger a sync
-TRIGGER_EXTENSIONS = {".md", ".yaml", ".json"}
+TRIGGER_EXTENSIONS = {
+    ".md", ".yaml", ".json",
+    ".png", ".jpg", ".jpeg", ".svg",
+    ".pptx", ".potx",
+}
 
 # Debounce: don't push more than once every N seconds
 DEBOUNCE_SECONDS = 5
@@ -79,13 +86,9 @@ def build_skills_context():
         "# AI Skills Context",
         f"_Auto-generated {datetime.now().strftime('%Y-%m-%d %H:%M')} — paste into Claude chat to load all skills_\n",
     ]
-    for skill_path in sorted(skills_dir.iterdir()):
-        if not skill_path.is_dir():
-            continue
-        skill_md = skill_path / "SKILL.md"
+    for skill_md in sorted(skills_dir.rglob("SKILL.md")):
+        skill_path = skill_md.parent
         meta_yaml = skill_path / "meta.yaml"
-        if not skill_md.exists():
-            continue
         # Read description from meta.yaml
         desc = ""
         if meta_yaml.exists():
@@ -104,7 +107,7 @@ def build_skills_context():
 
     out = REPO_ROOT / "SKILLS_CONTEXT.md"
     out.write_text("\n".join(lines))
-    log.info(f"✓ SKILLS_CONTEXT.md updated ({len(list(skills_dir.iterdir()))} skills)")
+    log.info(f"✓ SKILLS_CONTEXT.md updated ({len(list(skills_dir.rglob('SKILL.md')))} skills)")
 
 def git_sync(changed_file: str):
     """Stage all, commit with timestamp, push."""
@@ -172,7 +175,16 @@ def _maybe_sync_back_to_source(changed_path: Path):
     copy it back into skills/ so the repo stays as source of truth.
     """
     import shutil
-    skills_dir = REPO_ROOT / "skills" / "personal" / "personal"
+    skills_dir = REPO_ROOT / "skills" / "personal"
+
+    def source_skill_dir(skill_name: str) -> Path:
+        custom = skills_dir / "self_customize" / skill_name
+        if custom.exists():
+            return custom
+        return skills_dir / skill_name
+
+    if not changed_path.exists():
+        return
 
     for watch_dir in WATCH_DIRS:
         if watch_dir == skills_dir:
@@ -180,7 +192,9 @@ def _maybe_sync_back_to_source(changed_path: Path):
         try:
             rel = changed_path.relative_to(watch_dir)
             # rel = <skill-name>/<file>
-            dest = skills_dir / rel
+            if not rel.parts:
+                continue
+            dest = source_skill_dir(rel.parts[0]).joinpath(*rel.parts[1:])
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(changed_path, dest)
             log.info(f"  ↩ Synced back: {changed_path} → {dest}")

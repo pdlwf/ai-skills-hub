@@ -1,4 +1,0 @@
-interface:
-  display_name: "Personalized Coding Framework"
-  short_description: "Continuously maintain your coding governance policy."
-  default_prompt: "Infer and maintain my coding framework from explicit intent and interaction feedback."

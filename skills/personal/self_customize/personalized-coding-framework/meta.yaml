@@ -1,0 +1,13 @@
+name: personalized-coding-framework
+version: "1.0.0"
+description: "Apply and evolve Bobby's coding preferences across planning, architecture, implementation, debugging, testing, reviews, and technical writing."
+tags:
+  - coding
+  - preferences
+  - governance
+  - meta
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

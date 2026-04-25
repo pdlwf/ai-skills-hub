@@ -1,12 +1,12 @@
 name: codex
 display_name: OpenAI Codex / Codex CLI
-install_path: ~/.codex/skills/personal
+install_path: ~/.codex/skills
 file_types:
   - .md
   - .yaml
   - .json
 skill_subfolder: true
 notes: >
-  Codex CLI reads skills from ~/.codex/skills/<skill-name>/
-  This is also the source directory — watcher will detect edits here
-  and sync back to the GitHub repo.
+  Codex CLI reads skills from ~/.codex/skills/<skill-name>/.
+  Self-customized skills should be symlinked here from
+  skills/personal/self_customize/<skill-name>/.

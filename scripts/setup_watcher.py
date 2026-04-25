@@ -8,14 +8,17 @@ Run once: python3 scripts/setup_watcher.py
 import os
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 
 REPO_ROOT   = Path(__file__).parent.parent.resolve()
-WATCHER     = REPO_ROOT / "scripts" / "watcher.py"
+SOURCE_WATCHER = REPO_ROOT / "scripts" / "watcher.py"
+DEPLOY_ROOT = Path.home() / ".ai-skills-hub"
+WATCHER     = DEPLOY_ROOT / "watcher.py"
 PLIST_NAME  = "com.pdlwf.ai-skills-hub.watcher"
 PLIST_PATH  = Path.home() / "Library" / "LaunchAgents" / f"{PLIST_NAME}.plist"
-LOG_OUT     = REPO_ROOT / "logs" / "watcher.stdout.log"
-LOG_ERR     = REPO_ROOT / "logs" / "watcher.stderr.log"
+LOG_OUT     = DEPLOY_ROOT / "logs" / "watcher.stdout.log"
+LOG_ERR     = DEPLOY_ROOT / "logs" / "watcher.stderr.log"
 
 PLIST_CONTENT = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -44,12 +47,14 @@ PLIST_CONTENT = f"""<?xml version="1.0" encoding="UTF-8"?>
   <string>{LOG_ERR}</string>
 
   <key>WorkingDirectory</key>
-  <string>{REPO_ROOT}</string>
+  <string>{DEPLOY_ROOT}</string>
 
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
     <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    <key>AI_SKILLS_HUB_REPO_ROOT</key>
+    <string>{REPO_ROOT}</string>
   </dict>
 </dict>
 </plist>
@@ -60,25 +65,31 @@ def main():
     print("─" * 40)
 
     # 1. Ensure logs dir
-    (REPO_ROOT / "logs").mkdir(exist_ok=True)
+    DEPLOY_ROOT.mkdir(exist_ok=True)
+    (DEPLOY_ROOT / "logs").mkdir(exist_ok=True)
 
-    # 2. Install watchdog
-    print("1. Installing watchdog...")
+    # 2. Deploy watcher to a local path outside cloud-synced storage.
+    print(f"1. Deploying watcher → {WATCHER}")
+    shutil.copy2(SOURCE_WATCHER, WATCHER)
+    print("   ✓ watcher deployed")
+
+    # 3. Install watchdog
+    print("2. Installing watchdog...")
     subprocess.run([sys.executable, "-m", "pip", "install", "watchdog", "--quiet"], check=True)
     print("   ✓ watchdog installed")
 
-    # 3. Write plist
-    print(f"2. Writing launchd plist → {PLIST_PATH}")
+    # 4. Write plist
+    print(f"3. Writing launchd plist → {PLIST_PATH}")
     PLIST_PATH.parent.mkdir(parents=True, exist_ok=True)
     PLIST_PATH.write_text(PLIST_CONTENT)
     print("   ✓ plist written")
 
-    # 4. Unload old if exists
+    # 5. Unload old if exists
     subprocess.run(["launchctl", "unload", str(PLIST_PATH)],
                    capture_output=True)
 
-    # 5. Load
-    print("3. Loading launchd agent...")
+    # 6. Load
+    print("4. Loading launchd agent...")
     result = subprocess.run(["launchctl", "load", str(PLIST_PATH)],
                             capture_output=True, text=True)
     if result.returncode != 0:
@@ -86,7 +97,7 @@ def main():
         sys.exit(1)
     print("   ✓ Agent loaded — will auto-start on login")
 
-    # 6. Verify
+    # 7. Verify
     status = subprocess.run(["launchctl", "list", PLIST_NAME],
                              capture_output=True, text=True)
     if PLIST_NAME in status.stdout:

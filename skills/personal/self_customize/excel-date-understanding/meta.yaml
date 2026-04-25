@@ -1,0 +1,13 @@
+name: excel-date-understanding
+version: "1.0.0"
+description: "Interpret messy schedule dates in spreadsheets, including hierarchy recovery, note dates, conditional formatting, and row-level facts."
+tags:
+  - excel
+  - dates
+  - project-management
+  - scheduling
+compatible_tools:
+  - claude-code
+  - codex
+author: pdlwf
+updated: "2026-04-14"

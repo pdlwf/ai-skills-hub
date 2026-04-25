@@ -1,0 +1,16 @@
+name: ai-knowledge-os
+version: "1.0.0"
+description: "Route reusable AI work into Bobby's Notion AI Knowledge OS across Codex, Claude, Claude Code, and related tools."
+tags:
+  - knowledge-os
+  - notion
+  - ai-workflow
+  - memory
+compatible_tools:
+  - claude-code
+  - claude-app
+  - codex
+author: Bobby Peng
+updated: "2026-04-25"
+source:
+  type: local

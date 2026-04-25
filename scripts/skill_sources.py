@@ -28,7 +28,18 @@ DEFAULT_EXCLUDES = [".git", ".git/**", "meta.yaml"]
 
 
 def skill_dir(skill_name: str) -> Path:
-    return SKILLS_DIR / skill_name
+    direct = SKILLS_DIR / skill_name
+    if direct.exists():
+        return direct
+    matches = [
+        path.parent
+        for path in SKILLS_DIR.rglob("SKILL.md")
+        if path.parent.name == skill_name
+        or path.parent.relative_to(SKILLS_DIR).as_posix() == skill_name
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    return direct
 
 
 def load_meta(skill_name: str) -> tuple[Path, dict]:
@@ -48,7 +59,11 @@ def save_meta(meta_path: Path, meta: dict) -> None:
 def list_skill_names() -> list[str]:
     if not SKILLS_DIR.exists():
         return []
-    return sorted(path.name for path in SKILLS_DIR.iterdir() if path.is_dir())
+    return sorted(
+        path.parent.name
+        for path in SKILLS_DIR.rglob("meta.yaml")
+        if (path.parent / "SKILL.md").exists()
+    )
 
 
 def source_config(meta: dict) -> dict:

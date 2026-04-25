@@ -1,0 +1,15 @@
+name: inventus-docs-list
+version: "1.0.1"
+description: "Manage and reference Inventus document lists, source materials, and reusable document context for Inventus reporting work."
+tags:
+  - inventus
+  - documents
+  - reporting
+compatible_tools:
+  - claude-code
+  - claude-app
+  - codex
+author: Bobby Peng
+updated: "2026-04-25"
+source:
+  type: local

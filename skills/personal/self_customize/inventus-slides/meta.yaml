@@ -1,0 +1,19 @@
+name: inventus-slides
+version: "1.0.0"
+description: "Create polished, management-grade Inventus-branded presentations in PPTX or animated HTML."
+tags:
+  - presentation
+  - slides
+  - pptx
+  - html
+  - inventus
+  - branding
+compatible_tools:
+  - claude-code
+  - codex
+author: Inventus
+updated: "2026-04-16"
+source:
+  type: local
+  imported_from: "/Users/bobbypeng/.codex/skills/inventus-slides"
+  package_source: "/Users/bobbypeng/Library/CloudStorage/OneDrive-Personal/invent-us/report/issues/memory_supply_analysis/inventus-slides.skill"

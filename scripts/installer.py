@@ -17,6 +17,7 @@ import json
 import yaml
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Optional
 
 REPO_ROOT    = Path(__file__).parent.parent.resolve()
 SKILLS_DIR   = REPO_ROOT / "skills" / "personal"
@@ -34,8 +35,40 @@ def load_adapter(tool_name: str) -> dict:
 def list_tools() -> list[str]:
     return [p.stem for p in ADAPTERS_DIR.glob("*.yaml")]
 
+def iter_skill_dirs() -> list[Path]:
+    if not SKILLS_DIR.exists():
+        return []
+    return sorted(
+        path.parent
+        for path in SKILLS_DIR.rglob("SKILL.md")
+        if not any(part.startswith(".") for part in path.relative_to(SKILLS_DIR).parts)
+    )
+
 def list_skills() -> list[str]:
-    return [p.name for p in SKILLS_DIR.iterdir() if p.is_dir()]
+    return [path.name for path in iter_skill_dirs()]
+
+def resolve_skill_dir(skill_name: str) -> Optional[Path]:
+    direct = SKILLS_DIR / skill_name
+    if (direct / "SKILL.md").exists():
+        return direct
+
+    relative = SKILLS_DIR / skill_name
+    if (relative / "SKILL.md").exists():
+        return relative
+
+    matches = [
+        path
+        for path in iter_skill_dirs()
+        if path.name == skill_name or path.relative_to(SKILLS_DIR).as_posix() == skill_name
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        print(f"  ✗ Skill name '{skill_name}' is ambiguous:")
+        for match in matches:
+            print(f"    - {match.relative_to(SKILLS_DIR).as_posix()}")
+        return None
+    return None
 
 def expand_path(p: str) -> Path:
     return Path(os.path.expandvars(os.path.expanduser(p)))
@@ -44,7 +77,10 @@ def notify(title: str, message: str):
     os.system(f'osascript -e \'display notification "{message}" with title "{title}"\'')
 
 def load_skill_meta(skill_name: str) -> dict:
-    meta_path = SKILLS_DIR / skill_name / "meta.yaml"
+    skill_path = resolve_skill_dir(skill_name)
+    if not skill_path:
+        return {}
+    meta_path = skill_path / "meta.yaml"
     if meta_path.exists():
         with open(meta_path) as f:
             return yaml.safe_load(f) or {}
@@ -52,14 +88,15 @@ def load_skill_meta(skill_name: str) -> dict:
 
 # ── Core install ─────────────────────────────────────────────────────────────
 def install_skill(skill_name: str, adapter: dict, dry_run: bool = False) -> bool:
-    src = SKILLS_DIR / skill_name
-    if not src.exists():
+    src = resolve_skill_dir(skill_name)
+    if not src:
         print(f"  ✗ Skill '{skill_name}' not found in {SKILLS_DIR}")
         return False
 
+    install_name = src.name
     dest_base     = expand_path(adapter["install_path"])
     allowed_types = set(adapter.get("file_types", [".md", ".yaml", ".json"]))
-    dest          = dest_base / skill_name if adapter.get("skill_subfolder", True) else dest_base
+    dest          = dest_base / install_name if adapter.get("skill_subfolder", True) else dest_base
 
     if not dry_run:
         dest.mkdir(parents=True, exist_ok=True)
@@ -76,7 +113,7 @@ def install_skill(skill_name: str, adapter: dict, dry_run: bool = False) -> bool
 
     if copied:
         status = "[dry-run] would copy" if dry_run else "✓ installed"
-        print(f"  {status}: {skill_name} → {dest}  ({len(copied)} files)")
+        print(f"  {status}: {install_name} → {dest}  ({len(copied)} files)")
         return True
     else:
         print(f"  ⚠ {skill_name}: no matching files (types: {allowed_types})")
@@ -92,14 +129,24 @@ def update_cowork_manifest(adapter: dict, skills: list[str], dry_run: bool = Fal
     with open(manifest_path) as f:
         manifest = json.load(f)
 
-    existing_ids = {s["skillId"] for s in manifest["skills"]}
+    existing = {
+        (s.get("name") or s.get("skillId")): s
+        for s in manifest.get("skills", [])
+    }
     added = []
 
     for skill_name in skills:
-        if skill_name in existing_ids:
+        meta = load_skill_meta(skill_name)
+        if skill_name in existing:
+            if not dry_run:
+                existing[skill_name]["description"] = meta.get(
+                    "description",
+                    existing[skill_name].get("description", f"{skill_name} skill"),
+                )
+                existing[skill_name]["enabled"] = True
+                existing[skill_name]["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
             print(f"  ↺ manifest: '{skill_name}' already registered")
             continue
-        meta = load_skill_meta(skill_name)
         entry = {
             "skillId":     skill_name,
             "name":        skill_name,
@@ -142,7 +189,9 @@ def show_status():
         print(f"{skill:<35}", end="")
         for tool in tools:
             adapter  = load_adapter(tool)
-            dest     = expand_path(adapter["install_path"]) / skill / "SKILL.md"
+            skill_path = resolve_skill_dir(skill)
+            install_name = skill_path.name if skill_path else skill
+            dest     = expand_path(adapter["install_path"]) / install_name / "SKILL.md"
             dst_md5  = file_hash(dest)
             if dst_md5 == "missing":
                 print(f"{'✗ not installed':<20}", end="")
@@ -154,7 +203,7 @@ def show_status():
     print()
 
 # ── Install orchestrator ──────────────────────────────────────────────────────
-def install(tools: list[str], skills: list[str] | None, dry_run: bool):
+def install(tools: list[str], skills: Optional[list[str]], dry_run: bool):
     all_skills    = list_skills()
     target_skills = skills if skills else all_skills
 

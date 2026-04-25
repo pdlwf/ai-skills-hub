@@ -6,14 +6,20 @@ Personal AI skills library — version-controlled, multi-tool installable.
 
 ```
 skills/          ← Source of truth (edit here)
-  create-plan/
-  docx/
-  excel-date-understanding/
-  pdf/
-  personalized-coding-framework/
-  playwright/
-  pptx/
-  xlsx/
+  personal/      ← Only personal skills sync root
+    create-plan/
+    docx/
+    pdf/
+    playwright/
+    pptx/
+    self_customize/
+      ai-knowledge-os/
+      excel-date-understanding/
+      frontend-slides/
+      inventus-docs-list/
+      inventus-slides/
+      personalized-coding-framework/
+    xlsx/
 adapters/        ← Per-tool install path config
 scripts/         ← installer, watcher, launchd setup
 .github/         ← Auto-changelog on push
@@ -23,13 +29,19 @@ scripts/         ← installer, watcher, launchd setup
 
 ```bash
 # Install all skills to Claude Code
-python3 scripts/installer.py --tool claude
+python3 scripts/installer.py --tool claude-code
 
 # Install specific skills
-python3 scripts/installer.py --tool claude --skills docx,pdf,pptx
+python3 scripts/installer.py --tool claude-code --skills docx,pdf,pptx
 
 # Install to multiple tools
-python3 scripts/installer.py --tool claude,chatgpt,codex
+python3 scripts/installer.py --tool claude-code,chatgpt,codex
+
+# Link self-customized skills into Codex, Claude Code, and Claude Cowork
+python3 scripts/sync_self_customize.py
+
+# Build Claude App upload packages for every self-customized skill
+bash scripts/package-claude-app.sh --self-customize
 
 # List available tools and skills
 python3 scripts/installer.py --list
@@ -46,6 +58,42 @@ This installs a launchd agent that:
 - Watches all skill directories + installed tool directories
 - Auto-commits and pushes changes to GitHub
 - Sends macOS desktop notifications on sync
+
+## Self-Customized Skill Flow
+
+`skills/personal/self_customize/` is the only source of truth for heavily
+customized skills.
+
+Claude Code and Codex can use these skills directly through symlinks:
+
+```bash
+python3 scripts/sync_self_customize.py
+```
+
+Claude App / Claude.ai skills are account-level uploads. Generate uploadable
+packages from the same source, then upload the `.skill` or `.zip` files from
+`dist/` in `Customize > Skills`:
+
+```bash
+bash scripts/package-claude-app.sh --self-customize
+```
+
+Claude App currently has no confirmed local silent-install path in this repo.
+Treat the files in `dist/` as release artifacts to upload manually in Claude's
+`Customize > Skills` UI when you want to publish a new snapshot.
+
+When feedback changes a skill:
+- In Codex or Claude Code, edit the canonical folder under
+  `skills/personal/self_customize/<skill>/`; the symlinked local skill updates
+  immediately.
+- In Claude App / Claude.ai, the uploaded skill is a read-only release
+  snapshot. Maintain changes from Codex or Claude Code in the repo source,
+  then regenerate the affected package:
+
+```bash
+python3 scripts/sync_self_customize.py --skills <skill-name>
+bash scripts/package-claude-app.sh <skill-name>
+```
 
 ## Adapters
 
@@ -120,6 +168,9 @@ python3 scripts/skill_sources.py sync playwright --clean
 
 Recommended workflow:
 - Self-authored skills: omit `source` or set `source.type: local`.
+- Heavily customized personal skills: keep them under
+  `skills/personal/self_customize/` and link them into tools with
+  `python3 scripts/sync_self_customize.py`.
 - Third-party skills you do not customize heavily: keep them `source.type: git`
   and resync with `scripts/skill_sources.py sync <skill>`.
 - Third-party skills you customize a lot: fork the upstream repo first, then
